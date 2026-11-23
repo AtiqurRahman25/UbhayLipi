@@ -1,4 +1,4 @@
-# UbhayLipi: Bilingual Alphanumeric Dataset
+# UbhayLipi: Bilingual Alphanumeric Dataset (Sign Language)
 
 A Bengali–English hand-gesture image dataset and supporting documentation for research in visual recognition.
 
