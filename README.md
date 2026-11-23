@@ -1,206 +1,359 @@
 # UbhayLipi: Bilingual Alphanumeric Dataset (Sign Language)
 
-A Bengali–English hand-gesture image dataset and supporting documentation for research in visual recognition.
+Image-consolidation material and preliminary classification experiments for Bengali–English alphanumeric hand-gesture recognition.
 
-This repository documents UbhayLipi, its data-curation workflow, and considerations for using the dataset in reproducible machine-learning experiments.
-
-**Dataset record:** [Mendeley Data — Version 1](https://doi.org/10.17632/4yw7y4ftmy.1)  
-**Dataset DOI:** `10.17632/4yw7y4ftmy.1`
-
----
+**Dataset:** [UbhayLipi on Mendeley Data](https://doi.org/10.17632/4yw7y4ftmy.1)  
+**Version:** 1  
+**DOI:** `10.17632/4yw7y4ftmy.1`
 
 ## Overview
 
-UbhayLipi brings Bengali and English alphanumeric hand-gesture imagery into a common dataset for computer-vision research.
+This repository contains image-consolidation material organized into Bangla, English, and digit groups, together with two notebooks for classification experiments.
 
-The curation work included SHA-256-based duplicate detection, cross-class duplicate analysis, and class consolidation. These steps were undertaken to organize the image collection and investigate conflicting or repeated samples.
+The notebooks explore:
 
-The dataset concerns isolated alphanumeric gestures. It should not be interpreted as a complete representation of a sign language, continuous signing, or sign-language grammar.
+1. A comparison of a convolutional neural network (CNN), support vector machine (SVM), and k-nearest neighbours (k-NN).
+2. Training a separate CNN with augmentation, saving the model, and performing single-image prediction.
 
-## Dataset at a Glance
+**Important:** Both recorded experiments use **1,202 images across six classes**. Their results are not evaluations of the full 83-class UbhayLipi dataset.
 
-| Item | Description |
+The task is classification of isolated gesture images—not continuous sign-language recognition or translation.
+
+## Repository Structure
+
+```text
+UbhayLipi/
+├── Consolidated Images/
+├── Model Training & Testing/
+└── README.md
+```
+
+| Directory | Contents |
 |---|---|
-| Name | UbhayLipi: Bilingual Alphanumeric Dataset |
-| Modality | Hand-gesture images |
-| Language/script coverage | Bengali and English |
-| Documented class count | 83 |
-| Images examined during the reported curation workflow | 17,566 |
-| Main research task | Image classification |
-| Dataset version linked here | Version 1 |
-| Hosting platform | Mendeley Data |
-| DOI | `10.17632/4yw7y4ftmy.1` |
+| `Consolidated Images/` | Image-consolidation material separated into Bangla, English, and digit groups |
+| `Model Training & Testing/` | Two notebooks containing the experiments described below |
 
-**Count clarification:** The 17,566 figure describes the collection processed during curation. It should not be treated as the final released image count unless confirmed against the published dataset files.
+## Dataset and Curation
 
-For authoritative class names, file counts, and release details, consult the dataset record and its accompanying documentation.
+The reported dataset-curation work included:
 
-## Dataset Access
+- SHA-256-based exact-file duplicate detection.
+- Cross-class duplicate analysis.
+- Class consolidation.
 
-The published dataset is available through Mendeley Data:
+The curation workflow examined 17,566 images and involved an 83-class organization.
 
-**[Access UbhayLipi — Version 1](https://doi.org/10.17632/4yw7y4ftmy.1)**
+The 17,566 figure refers to images examined during curation; it should not be interpreted as the final released image count without checking the published dataset.
 
-When reporting experiments:
+For authoritative release information, contributor details, and licensing, consult the [Mendeley Data record](https://doi.org/10.17632/4yw7y4ftmy.1).
 
-- Identify the dataset version.
-- Document any changes to the downloaded files.
-- Report the number of images and classes actually used.
-- Preserve the relationship between class names and numerical labels.
-- Describe exclusions, preprocessing, and dataset splits.
+## Environment and Dependencies
 
-## Data Curation
+The supplied notebooks use Google Colab and access images stored in Google Drive.
 
-### 1. Exact-Duplicate Detection
+Main dependencies:
 
-SHA-256 hashes were used to identify byte-identical image files.
+```text
+numpy
+pandas
+matplotlib
+opencv-python
+scikit-learn
+tensorflow
+```
 
-Files with matching hashes can be flagged for duplicate review. This procedure does not identify all visually equivalent images: resized, recompressed, cropped, or otherwise modified copies may have different hashes.
+The Drive-mounting cells require the Google Colab environment.
 
-### 2. Cross-Class Duplicate Analysis
+Exact package versions were not included in the recorded outputs. Results may vary between environments and runs.
 
-Duplicate checks were extended across class folders to identify identical files appearing under different labels.
+## Input Data Layout
 
-A cross-class match is a review flag, not an automatic instruction to delete a sample or change its label. Resolution should consider the dataset’s class definitions and source information.
+Both notebooks expect individual class folders directly inside `dataset_dir` or `DATASET_PATH`:
 
-### 3. Class Consolidation
+```text
+SIGN_LANGUAGE_DATA/
+├── class_1/
+│   ├── image_001.jpg
+│   └── ...
+├── class_2/
+│   ├── image_001.jpg
+│   └── ...
+└── ...
+```
 
-The curation workflow included class merging.
+The folder names above are illustrative. Actual class labels are derived from the input directory names.
 
-Any reproduction or extension of the dataset should document:
+Point the notebooks to the directory containing the individual gesture classes, not a higher-level directory containing only Bangla, English, and digit groups.
 
-- Original class labels.
-- Final class labels.
-- The mapping between them.
-- The reason for each merge.
-- The resulting class counts.
+The recorded experiments detect six classes. The complete class list should be inspected from the notebook:
 
-This mapping is important for interpreting predictions and comparing experiments.
+```python
+# Experiment 1
+print(encoder.classes_.tolist())
 
-## Suggested Research Directions
+# Experiment 2
+print(train_data.class_indices)
+```
 
-Potential uses include:
+## Experiment 1: CNN, SVM, and k-NN Comparison
 
-- Supervised classification of isolated alphanumeric gestures.
-- Comparison of visual feature representations.
-- Analysis of class imbalance and visually similar categories.
-- Investigation of duplicate handling and dataset quality.
-- Evaluation of robustness to image transformations.
+### Data Preparation
 
-These are potential applications, not claims of validated performance or deployment readiness.
+Images are:
 
-## Recommended Experimental Practice
+1. Loaded using OpenCV.
+2. Resized to 64 × 64 pixels.
+3. Scaled by dividing pixel values by 255.
+4. Assigned numerical labels using `LabelEncoder`.
 
-### Prevent Data Leakage
+The code retains OpenCV's BGR channel order; no explicit conversion to RGB is shown.
 
-Check for duplicate and near-duplicate samples before constructing training, validation, and test sets.
+### Configuration
 
-If multiple images originate from the same signer, recording session, or source collection, consider group-based splitting where suitable metadata are available. If those identifiers are unavailable, state this limitation.
+| Setting | Value |
+|---|---|
+| Images loaded | 1,202 |
+| Classes | 6 |
+| Image shape | 64 × 64 × 3 |
+| Initial training partition | 961 images |
+| Test partition | 241 images |
+| Test fraction | 20% |
+| Split random state | 42 |
+| Stratified split | Not specified |
+| CNN validation | 10% of the initial training partition |
 
-Do not assume that a random image-level split measures generalization to unseen signers.
+The CNN reserves part of the initial training partition for validation. The SVM and k-NN use the full initial training partition.
 
-### Document Preprocessing
+### CNN Architecture
 
-Report the steps actually used, including, where applicable:
+```text
+Input: 64 × 64 × 3
+→ Conv2D: 32 filters, 3 × 3, ReLU
+→ MaxPooling2D: 2 × 2
+→ Conv2D: 64 filters, 3 × 3, ReLU
+→ MaxPooling2D: 2 × 2
+→ Flatten
+→ Dense: 128 units, ReLU
+→ Dropout: 0.5
+→ Dense: 6 units, Softmax
+```
 
-- Image resizing.
-- Colour-space conversion.
-- Cropping or background processing.
-- Normalization.
-- Data augmentation.
-- Treatment of unreadable or excluded files.
+| Training setting | Value |
+|---|---|
+| Optimizer | Adam |
+| Loss | Sparse categorical cross-entropy |
+| Epochs | 5 |
+| Batch size | 32 |
+| Model parameters | 1,625,926 |
 
-Apply training-time augmentation only to the training partition.
+### Classical Models
 
-### Report More Than Overall Accuracy
+The SVM and k-NN classifiers use flattened, normalized image pixels rather than learned CNN features.
 
-Where appropriate, include:
+```python
+svm_model = SVC(kernel="rbf")
+knn_model = KNeighborsClassifier(n_neighbors=5)
+```
 
-- Overall accuracy.
-- Macro-averaged precision, recall, and F1-score.
-- Per-class sample counts and metrics.
-- A confusion matrix.
-- Analysis of representative errors.
+### Recorded Results
 
-Record the split procedure, random seed, software environment, and model configuration.
+The following values are taken from the supplied notebook output for a single run on the 241-image test partition.
 
-## Results and Reproducibility
+| Model | Test Accuracy | Macro Precision | Macro Recall |
+|---|---:|---:|---:|
+| CNN | 99.17% | 0.9921 | 0.9928 |
+| SVM | 100.00% | 1.0000 | 1.0000 |
+| k-NN | 99.59% | 0.9957 | 0.9964 |
 
-This README does not claim a benchmark score.
+The notebook also generates a confusion matrix for each model.
 
-Any results added to this repository should link to the code and configuration needed to reproduce them and identify the exact dataset version and evaluation split.
+These results apply only to the documented six-class split. The SVM's 100% accuracy does not establish perfect recognition on new signers, new capture conditions, or the full dataset.
 
-A useful results table should include:
+## Experiment 2: CNN Training and Single-Image Prediction
 
-| Model | Dataset Version | Split Protocol | Accuracy | Macro F1 | Configuration |
-|---|---|---|---|---|---|
-| Add only after evaluation | — | — | — | — | — |
+This notebook builds and trains a separate CNN, saves it, plots training curves, and demonstrates prediction for one image.
 
-Remove the placeholder table if no experiments are included.
+It does not load or independently test the CNN from Experiment 1.
 
-## Limitations and Responsible Use
+### Configuration
 
-- Isolated gesture classification is narrower than complete sign-language recognition or translation.
-- The documented number of classes does not establish complete coverage of either language.
-- Results may depend on signer diversity, lighting, backgrounds, acquisition conditions, and class balance.
-- Exact-file deduplication does not eliminate all near-duplicates or all sources of evaluation leakage.
-- Performance on this dataset alone does not establish suitability for real-world accessibility applications.
-- Use must comply with the published dataset licence and any applicable source-data conditions.
+| Setting | Value |
+|---|---|
+| Images | 1,202 |
+| Classes | 6 |
+| Input shape | 128 × 128 × 3 |
+| Training images | 962 |
+| Validation images | 240 |
+| Batch size | 32 |
+| Epochs | 5 |
+| Optimizer | Adam |
+| Loss | Categorical cross-entropy |
+| Model parameters | 6,517,574 |
 
-Claims about demographic coverage, participant consent, and anonymization should be supported by the dataset documentation rather than inferred from the images.
+### Preprocessing and Augmentation
 
-## Contributors
+The notebook uses `ImageDataGenerator` with:
 
-The contributor list reported for Version 1 is:
+```python
+ImageDataGenerator(
+    rescale=1./255,
+    rotation_range=15,
+    zoom_range=0.2,
+    shear_range=0.2,
+    horizontal_flip=True,
+    validation_split=0.2
+)
+```
 
-- A. Alam
-- M. A. R. Sifat
-- L. Ahamod
-- J. Ali
-- S. A. Al Mamun
-- T. Islam
+In the recorded implementation, the training and validation subsets use the same augmentation-enabled generator. Consequently, validation images are also subject to random transformations.
 
-Please consult the published dataset record for the authoritative contributor names and order.
+`shuffle=False` preserves validation ordering; it does not disable augmentation.
 
-### Repository Maintainer
+Whether horizontal flipping preserves the correct gesture label should be checked for each class.
 
-[Md. Atiqur Rahman Sifat](https://github.com/AtiqurRahman25)
+### CNN Architecture
 
-Dataset authorship, repository maintenance, and implementation contributions are distinct roles. Contributions to individual scripts or analyses should be credited explicitly.
+```text
+Input: 128 × 128 × 3
+→ Conv2D: 32 filters, 3 × 3, ReLU
+→ MaxPooling2D: 2 × 2
+→ Conv2D: 64 filters, 3 × 3, ReLU
+→ MaxPooling2D: 2 × 2
+→ Conv2D: 128 filters, 3 × 3, ReLU
+→ MaxPooling2D: 2 × 2
+→ Flatten
+→ Dense: 256 units, ReLU
+→ Dropout: 0.5
+→ Dense: 6 units, Softmax
+```
+
+### Recorded Validation Result
+
+At the end of epoch 5, the supplied output reports:
+
+| Metric | Value |
+|---|---:|
+| Validation accuracy | 82.50% |
+| Validation loss | Approximately 0.4925 |
+
+These are validation results under the recorded augmentation configuration, not independent test-set results.
+
+### Model Saving
+
+The supplied notebook saves the model in HDF5 format:
+
+```python
+model.save(
+    "/content/drive/MyDrive/SIGN_LANGUAGE_ Model/sign_language_model.h5"
+)
+```
+
+This path is specific to the original Google Drive setup. Update it for your environment and ensure the destination directory exists.
+
+### Single-Image Prediction
+
+The notebook:
+
+1. Loads an image at 128 × 128 pixels.
+2. Scales its pixel values by 1/255.
+3. Runs the trained model.
+4. Selects the class with the highest output score.
+5. Displays the image and predicted label.
+
+The supplied example produces:
+
+```text
+Predicted Sign: B_(b)
+```
+
+The example image is located inside the same source directory used to create the training and validation subsets. Its partition membership is not established in the shown code.
+
+This is an inference demonstration, not evidence of performance on an independent external image.
+
+The prediction function uses the model and class mapping held in the active session; it does not reload the saved model.
+
+## Relationship Between the Experiments
+
+The two notebooks use different:
+
+- CNN architectures.
+- Image resolutions.
+- Data-partitioning procedures.
+- Validation configurations.
+- Augmentation settings.
+- Image-loading pipelines.
+
+Their CNN scores should not be interpreted as a controlled comparison.
+
+| Experiment | Reported metric | Result |
+|---|---|---:|
+| Experiment 1 | CNN test accuracy on 241 images | 99.17% |
+| Experiment 2 | Final-epoch validation accuracy on an augmented validation subset | 82.50% |
+
+## How to Run
+
+1. Obtain the appropriate dataset version and review its usage conditions.
+2. Open a notebook from `Model Training & Testing/` in Google Colab.
+3. Mount Google Drive.
+4. Update the dataset path to your own class-folder directory.
+5. Verify the detected class names and image counts.
+6. Run preprocessing, training, and evaluation cells in order.
+7. Update output paths before saving models.
+8. Record the software versions, configuration, and results for your run.
+
+The hard-coded paths in the notebooks are examples from the original environment and must be adapted.
+
+## Limitations
+
+The supplied experiments are preliminary.
+
+- Only six classes are evaluated.
+- The relationship between the selected classes and the full dataset requires explicit documentation.
+- Duplicate and near-duplicate checks are not shown in the experiment code.
+- Signer-disjoint and session-disjoint evaluation are not demonstrated.
+- The first experiment does not explicitly stratify its train/test split.
+- The second experiment applies random augmentation to validation images.
+- Python, NumPy, and TensorFlow randomness are not fully controlled.
+- Results are reported from individual runs rather than repeated experiments.
+- Exact dependency versions are not recorded.
+- The single-image prediction example does not establish external generalization.
+
+These limitations do not demonstrate that data leakage occurred. They identify checks and evaluation details that are not established by the supplied code.
+
+## Planned Improvements
+
+- Publish the six-class label list and per-class image counts.
+- Document how the experimental subset was selected.
+- Save explicit training, validation, and test manifests.
+- Check exact and near-duplicate overlap between partitions.
+- Use signer- or session-aware splits where metadata permit.
+- Separate training augmentation from validation preprocessing.
+- Verify that augmentations preserve class meaning.
+- Report macro F1-score and per-class results.
+- Repeat experiments across multiple seeds.
+- Save class mappings alongside trained models.
+- Add a standalone saved-model inference workflow.
+- Extend evaluation to the full dataset.
+
+These are planned improvements, not claims of completed functionality.
 
 ## Citation
 
-If you use UbhayLipi, cite the published dataset version.
+If you use UbhayLipi, cite the published dataset version:
 
-> Alam, A., Sifat, M. A. R., Ahamod, L., Ali, J., Al Mamun, S. A., & Islam, T. (2026). *UbhayLipi: Bilingual Alphanumeric Dataset* (Version 1) [Dataset]. Mendeley Data. https://doi.org/10.17632/4yw7y4ftmy.1
+**UbhayLipi: Bilingual Alphanumeric Dataset.** Mendeley Data, Version 1.  
+DOI: [10.17632/4yw7y4ftmy.1](https://doi.org/10.17632/4yw7y4ftmy.1)
 
-```bibtex
-@misc{ubhaylipi2026,
-  author    = {Alam, A. and Sifat, M. A. R. and Ahamod, L.
-               and Ali, J. and Al Mamun, S. A. and Islam, T.},
-  title     = {UbhayLipi: Bilingual Alphanumeric Dataset},
-  year      = {2026},
-  publisher = {Mendeley Data},
-  version   = {1},
-  doi       = {10.17632/4yw7y4ftmy.1},
-  url       = {[https://doi.org/10.17632/4yw7y4ftmy.1](https://doi.org/10.17632/4yw7y4ftmy.1)}
-}
-```
-
-Check this citation against the repository’s official citation export before use.
+Use the Mendeley Data record's citation export for the authoritative contributor list and complete citation.
 
 ## Licensing
 
-### Dataset
+Consult the published dataset record for dataset licensing and source-data conditions.
 
-Consult the licence displayed on the Mendeley Data record. This README does not grant additional rights to the dataset or its source images.
+Any repository code licence should be stated separately. A code licence does not automatically grant rights to redistribute dataset images.
 
-### Repository Code and Documentation
+## Maintainer
 
-Refer to the repository’s `LICENSE` file, if provided. Do not assume that a code licence also applies to the dataset.
+[Md. Atiqur Rahman Sifat](https://github.com/AtiqurRahman25)
 
-## Questions and Corrections
-
-Please open a GitHub issue to report documentation errors, reproducibility problems, or suspected data-quality issues.
-
-When reporting an image-related issue, include the dataset version, relevant class label, and filename. Avoid uploading personal or restricted material.
+For documentation corrections, data-quality concerns, or reproducibility questions, please open a GitHub issue.
